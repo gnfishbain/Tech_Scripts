@@ -824,15 +824,46 @@ if ($manufacturer -like "*dell*") {
 
 if ($manufacturer -like "*lenovo*") {
     Write-Host "This Is a Lenovo Computer, Installing Lenovo Commercial Vantage"
-    winget install --id 9NR5B8GVVM13 --silent --accept-package-agreements --accept-source-agreements --scope machine
-    Write-Output "Installation completed."
-    # Define the folder path and executable name
-    $folderPath = "C:\Program Files\WindowsApps"
-    $exeName = "CommercialVantage.exe"
+	# Define variables
+$Url = "https://download.lenovo.com/pccbbs/thinkvantage_en/metroapps/Vantage/LenovoCommercialVantage_20.2511.24.0.20251217075118.zip"
+$ZipPath = "C:\Temp\LenovoCommercialVantage.zip"
+$ExtractPath = "C:\Temp\LenovoCoVantage"
+$InstallerPath = Join-Path $ExtractPath "VantageInstaller.exe"
 
-    # Search for the executable in the folder
-    $file = Get-ChildItem -Path $folderPath -Recurse -Filter $exeName -ErrorAction SilentlyContinue
+# Ensure Temp directory exists
+if (!(Test-Path "C:\Temp")) {
+    New-Item -Path "C:\" -Name "Temp" -ItemType Directory -Force | Out-Null
+}
 
+# Download file
+Write-Host "Downloading Lenovo Commercial Vantage - this will take a few minutes..."
+Invoke-WebRequest -Uri $Url -OutFile $ZipPath -UseBasicParsing
+
+if (!(Test-Path $ZipPath)) {
+    Write-Error "Download failed. File not found."
+    exit 1
+}
+
+# Remove existing extraction folder if exists
+if (Test-Path $ExtractPath) {
+    Write-Host "Cleaning previous extraction folder..."
+    Remove-Item -Path $ExtractPath -Recurse -Force
+}
+
+# Extract ZIP
+Write-Host "Extracting package..."
+Expand-Archive -Path $ZipPath -DestinationPath $ExtractPath -Force
+
+if (!(Test-Path $InstallerPath)) {
+    Write-Error "Installer not found after extraction."
+    exit 1
+}
+
+# Run installer
+Write-Host "Running Lenovo Commercial Vantage installer..."
+Start-Process -FilePath $InstallerPath -ArgumentList "Install -Vantage" -Wait -NoNewWindow
+
+Write-Host "Installation process completed."
 
 }
      
@@ -843,20 +874,21 @@ if ($manufacturer -like "*lenovo*") {
      Write-Host "Cleaned all downloaded files"
 
 
-# Prompt user to continue with Winget update
+# Prompt user if continue with Winget update
 Write-Host "Do you want to update installed programs using Winget? (Y/N)" -ForegroundColor Blue
-$response = Read-Host 
-if ($response -match "^y$|^yes$") {
+$response = (Read-Host).Trim().ToLower()
+
+if ($response -in @('y','yes')) {
     Write-Output "."
     Write-Output "Running Winget Update..."
 
-      
+  
     # Winget upgrade all packages
-	#Exclude Harmony SASE from winget update
+	# Exclude Harmony SASE from winget update
 	winget pin add --id Perimeter81.HarmonySASE
 	
     Write-Host "Starting Winget Upgrade for all packages..."
-    winget upgrade --all -h -u --exclude-id Perimeter81.HarmonySASE --force
+    winget upgrade --all -h -u --force
 
     Write-Host "============================" -ForegroundColor Cyan
     Write-Host " Finished Winget Upgrade... " -ForegroundColor White
@@ -866,7 +898,7 @@ if ($response -match "^y$|^yes$") {
     
 } else {
     Write-Output "Skipping Winget update."
-}
+	}
 
 
 # End Logging
