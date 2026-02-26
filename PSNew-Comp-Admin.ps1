@@ -900,7 +900,11 @@ if ($response -in @('y','yes')) {
     Write-Output "Skipping Winget update."
 	}
 
-
+# Remove CIS Profile
+Write-host "Remove CIS Profile"
+$profile = Get-WmiObject Win32_UserProfile | Where-Object { $_.LocalPath -match "C:\\Users\\cis" }
+$profile.Delete()
+Write-host "CIS Profile deleted"
 # End Logging
 Write-Host "============================" -ForegroundColor White -BackgroundColor Cyan
 Write-Host " Script execution complete! " -ForegroundColor Black -BackgroundColor Cyan
@@ -918,3 +922,4 @@ Start-Process "ms-settings:windowsupdate"
 start-Process explorer.exe \\share.technion.ac.il\pcsupport$\INS\Scripts\
 
 exit
+
