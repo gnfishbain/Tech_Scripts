@@ -57,7 +57,8 @@ netsh advfirewall firewall set rule group="Remote Desktop" new enable=Yes
 netsh advfirewall firewall set rule group="Windows Remote Management" new enable=yes
 netsh advfirewall firewall add rule name="Allow TeamViewer" dir=in action=allow protocol=TCP localport=5938
 netsh advfirewall firewall add rule name="Allow TeamViewer UDP" dir=in action=allow protocol=UDP localport=5938
-
+Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private
+Enable-NetFirewallRule -DisplayGroup "Network Discovery"
 
 # Set Time Zone
 Write-Host "========================================" -ForegroundColor Cyan
